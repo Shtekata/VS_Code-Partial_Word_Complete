@@ -5,31 +5,26 @@ export function activate(context: vscode.ExtensionContext) {
     const editor = vscode.window.activeTextEditor
     if (!editor) return
 
-    const pos = editor.selection.active
-    const completions = await vscode.commands.executeCommand<vscode.CompletionList>(
-      'vscode.executeCompletionItemProvider',
-      editor.document.uri,
-      pos
-    )
-    if (!completions || completions.items.length === 0) {
-      await vscode.commands.executeCommand('cursorRight')
-      return
-    }
+    const suggestController = (vscode as any).window?.activeInlineCompletion
+    const suggestion = suggestController?.insertText
+    if (!suggestion) return
 
-    const label = completions.items[0].label.toString()
-    const next = label.split(/\s+/)[0]
-    if (!next) {
-      await vscode.commands.executeCommand('cursorRight')
-      return
-    }
+    // Extract next word from suggestion
+    const match = suggestion.match(/^(\S+)(\s|$)/)
+    const nextWord = match?.[1]
+    if (!nextWord) return
 
-    await editor.edit(edit => {
-      edit.insert(pos, next)
+    const position = editor.selection.active
+
+    await editor.edit(editBuilder => {
+      editBuilder.insert(position, nextWord)
     })
 
-    await vscode.commands.executeCommand('hideSuggestWidget')
+    const newPosition = position.translate(0, nextWord.length)
+    editor.selection = new vscode.Selection(newPosition, newPosition)
   })
 
   context.subscriptions.push(disposable)
 }
+
 export function deactivate() {}

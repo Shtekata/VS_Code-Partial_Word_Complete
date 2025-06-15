@@ -26,14 +26,14 @@
     "commands": [
       {
         "command": "partialWord.insertNextWord",
-        "title": "Insert Next Word"
+        "title": "Insert Next Word from Suggestion"
       }
     ],
     "keybindings": [
       {
         "key": "right",
         "command": "partialWord.insertNextWord",
-        "when": "suggestWidgetVisible && textInputFocus"
+        "when": "editorTextFocus"
       }
     ]
   },
