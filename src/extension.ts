@@ -1,29 +1,28 @@
+// src/extension.ts
 import * as vscode from 'vscode'
 
+let lastGhostText: string | undefined
+
 export function activate(context: vscode.ExtensionContext) {
-  const disposable = vscode.commands.registerCommand('partialWord.insertNextWord', async () => {
+  let disposable = vscode.commands.registerCommand('partialCopilot.acceptNextWord', async () => {
     const editor = vscode.window.activeTextEditor
     if (!editor) return
 
-    const position = editor.selection.active
-    const lineText = editor.document.lineAt(position.line).text
+    // Attempt to access inline suggestion API (not public, so fallback to heuristic)
+    const doc = editor.document
+    const pos = editor.selection.active
 
-    const suffix = lineText.slice(position.character)
+    const nextCharRange = new vscode.Range(pos, pos.translate(0, 80))
+    const lineText = doc.getText(nextCharRange)
 
-    // Try to insert next word from ghost suggestion
-    const match = suffix.match(/^(\w+)/)
-    if (!match) {
-      vscode.commands.executeCommand('cursorRight')
-      return
-    }
+    const match = lineText.match(/^[^\s]+(\s|$)/) // Match next word until space
+    if (!match) return
 
-    const nextWord = match[1]
+    const nextWord = match[0]
+
     await editor.edit(editBuilder => {
-      editBuilder.insert(position, nextWord)
+      editBuilder.insert(pos, nextWord)
     })
-
-    const newPos = position.translate(0, nextWord.length)
-    editor.selection = new vscode.Selection(newPos, newPos)
   })
 
   context.subscriptions.push(disposable)
