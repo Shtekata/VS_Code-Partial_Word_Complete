@@ -1,0 +1,42 @@
+{
+  "name": "partial-word-complete",
+  "displayName": "Partial Word Complete",
+  "description": "Insert only the next word from IntelliSense using Right Arrow",
+  "version": "0.0.1",
+  "publisher": "Shtekata",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "main": "./out/extension.js",
+  "scripts": {
+    "compile": "tsc -p .",
+    "vscode:prepublish": "npm run compile"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:*"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "partialWord.insertNextWord",
+        "title": "Insert Next Word"
+      }
+    ],
+    "keybindings": [
+      {
+        "key": "right",
+        "command": "partialWord.insertNextWord",
+        "when": "suggestWidgetVisible && textInputFocus"
+      }
+    ]
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.75.0",
+    "typescript": "^4.9.3",
+    "vsce": "^1.97.0",
+    "vscode": "^1.1.34"
+  }
+}
