@@ -4,6 +4,10 @@
   "description": "Insert only the next word from IntelliSense using Right Arrow",
   "version": "0.0.1",
   "publisher": "Shtekata",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Shtekata/VS_Code-Partial_Word_Complete.git"
+  },
   "engines": {
     "vscode": "^1.75.0"
   },
