@@ -1,27 +1,29 @@
 import * as vscode from 'vscode'
 
 export function activate(context: vscode.ExtensionContext) {
-  const disposable = vscode.commands.registerCommand('partialWord.insertNextWord', async () => {
+  const disposable = vscode.commands.registerCommand('partialWord.insertNextWord', () => {
     const editor = vscode.window.activeTextEditor
     if (!editor) return
 
-    const suggestController = (vscode as any).window?.activeInlineCompletion
-    const suggestion = suggestController?.insertText
-    if (!suggestion) return
+    const position = editor.selection.active
+    const line = editor.document.lineAt(position.line).text
 
-    // Extract next word from suggestion
-    const match = suggestion.match(/^(\S+)(\s|$)/)
+    const currentText = line.slice(0, position.character)
+    const restText = line.slice(position.character)
+
+    // Match the first word from the remaining text
+    const match = restText.match(/^(\S+)(\s|$)/)
     const nextWord = match?.[1]
     if (!nextWord) return
 
-    const position = editor.selection.active
-
-    await editor.edit(editBuilder => {
-      editBuilder.insert(position, nextWord)
-    })
-
-    const newPosition = position.translate(0, nextWord.length)
-    editor.selection = new vscode.Selection(newPosition, newPosition)
+    editor
+      .edit(editBuilder => {
+        editBuilder.insert(position, nextWord)
+      })
+      .then(() => {
+        const newPos = position.translate(0, nextWord.length)
+        editor.selection = new vscode.Selection(newPos, newPos)
+      })
   })
 
   context.subscriptions.push(disposable)
