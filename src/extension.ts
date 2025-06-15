@@ -1,29 +1,34 @@
 import * as vscode from 'vscode'
 
 export function activate(context: vscode.ExtensionContext) {
-  const disposable = vscode.commands.registerCommand('partialWord.insertNextWord', () => {
+  const disposable = vscode.commands.registerCommand('partialWord.insertNextWord', async () => {
     const editor = vscode.window.activeTextEditor
     if (!editor) return
 
-    const position = editor.selection.active
-    const line = editor.document.lineAt(position.line).text
+    const cursor = editor.selection.active
+    const line = editor.document.lineAt(cursor.line).text
 
-    const currentText = line.slice(0, position.character)
-    const restText = line.slice(position.character)
+    const before = line.slice(0, cursor.character)
+    const after = line.slice(cursor.character)
 
-    // Match the first word from the remaining text
-    const match = restText.match(/^(\S+)(\s|$)/)
+    // We guess the inline suggestion based on what's visible as ghost text
+    // but Copilot's ghost text is not part of the document, so we can't see it
+    // => fallback: grab the whole visible line and compute difference manually
+    const visibleSuggestion = after
+
+    if (!visibleSuggestion) return
+
+    // Find the next "word-like" portion of the visible suggestion
+    const match = visibleSuggestion.match(/^(\w+)(\W|$)/) // word followed by non-word
     const nextWord = match?.[1]
     if (!nextWord) return
 
-    editor
-      .edit(editBuilder => {
-        editBuilder.insert(position, nextWord)
-      })
-      .then(() => {
-        const newPos = position.translate(0, nextWord.length)
-        editor.selection = new vscode.Selection(newPos, newPos)
-      })
+    await editor.edit(editBuilder => {
+      editBuilder.insert(cursor, nextWord)
+    })
+
+    const newPos = cursor.translate(0, nextWord.length)
+    editor.selection = new vscode.Selection(newPos, newPos)
   })
 
   context.subscriptions.push(disposable)
